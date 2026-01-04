@@ -53,8 +53,8 @@ public class ProductsController {
     }
 
     @DeleteMapping("/{id}")
-    public Object delete(@PathVariable int id) {
-        return service.delete(id);
+    public void delete(@PathVariable int id) {
+        service.delete(id);
     }
 
 }

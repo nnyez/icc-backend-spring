@@ -4,4 +4,6 @@ public class PartialUpdateProductDto {
     public String name;
     public String description;
     public Double price;
+    public Integer stock;
 }
+

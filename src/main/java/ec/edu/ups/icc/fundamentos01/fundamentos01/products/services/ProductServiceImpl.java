@@ -1,7 +1,6 @@
 package ec.edu.ups.icc.fundamentos01.fundamentos01.products.services;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -9,84 +8,122 @@ import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.CreateProductDto
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.PartialUpdateProductDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.UpdateProductDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.ProductResponseDto;
-import ec.edu.ups.icc.fundamentos01.fundamentos01.products.entities.Product;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.products.entities.ProductEntity;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.mappers.ProductMapper;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.products.models.Product;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.repositories.ProductRepository;
+import java.util.List;
 
 @Service
 public class ProductServiceImpl implements ProductService {
-    private int currentId = 1;
 
-    private List<Product> products = new ArrayList<>(List.of(
-            new Product(currentId++, "Laptop", "High-performance laptop", 1200.00),
-            new Product(currentId++, "Mouse", "Wireless mouse", 25.50),
-            new Product(currentId++, "Keyboard", "Mechanical keyboard", 120.00),
-            new Product(currentId++, "Monitor", "4K monitor", 350.00),
-            new Product(currentId++, "Headphones", "Noise-cancelling headphones", 180.00)));
+    private final ProductRepository productRepo;
 
-    @Override
-    public List<ProductResponseDto> findAll() {
-        return products.stream().map(ProductMapper::toResponse).toList();
+    public ProductServiceImpl(ProductRepository productRepo) {
+        this.productRepo = productRepo;
     }
 
     @Override
-    public Object findOne(int id) {
-        return products.stream()
-                .filter(p -> p.getId() == id)
-                .findFirst()
+    public List<ProductResponseDto> findAll() {
+
+        // 1. El repositorio devuelve entidades JPA (ProductEntity)
+        return productRepo.findAll()
+                .stream()
+
+                // 2. Cada ProductEntity se transforma en un modelo de dominio Product
+                // Aquí se desacopla la capa de persistencia de la lógica de negocio
+                .map(Product::fromEntity)
+
+                // 3. El modelo de dominio se convierte en DTO de respuesta
+                // Solo se exponen los campos permitidos por la API
                 .map(ProductMapper::toResponse)
-                .orElseGet(() -> null);
+
+                // 4. Se recopila el resultado final como una lista de DTOs
+                .toList();
+    }
+
+    @Override
+    public ProductResponseDto findOne(int id) {
+        return productRepo.findById((long) id)
+                .map(Product::fromEntity)
+                .map(ProductMapper::toResponse)
+                .orElseThrow(() -> new IllegalStateException("Producto no encontrado"));
     }
 
     @Override
     public ProductResponseDto create(CreateProductDto dto) {
-        Product product = ProductMapper.toEntity(currentId++, dto.name, dto.description, dto.price);
-        products.add(product);
-        return ProductMapper.toResponse(product);
+        return Optional.of(dto)
+                .map(ProductMapper::fromCreateDto)
+                .map(Product::toEntity)
+                .map(productRepo::save)
+                .map(Product::fromEntity)
+                .map(ProductMapper::toResponse)
+
+                .orElseThrow(() -> new IllegalStateException("Error al crear el producto"));
     }
 
     @Override
-    public Object update(int id, UpdateProductDto dto) {
-        Product product = products.stream().filter(p -> p.getId() == id).findFirst().orElse(null);
-        if (product == null)
-            return new Object() {
-                public String error = "Product not found";
-            };
+    public ProductResponseDto update(int id, UpdateProductDto dto) {
 
-        product.setName(dto.name);
-        product.setDescription(dto.description);
-        product.setPrice(dto.price);
+        return productRepo.findById((long) id)
+                // Entity → Domain
+                .map(Product::fromEntity)
 
-        return ProductMapper.toResponse(product);
+                // Aplicar cambios permitidos en el dominio
+                .map(product -> product.update(dto))
+
+                // Domain → Entity
+                .map(Product::toEntity)
+
+                // Persistencia
+                .map(productRepo::save)
+
+                // Entity → Domain
+                .map(Product::fromEntity)
+
+                // Domain → DTO
+                .map(ProductMapper::toResponse)
+
+                // Error controlado si no existe
+                .orElseThrow(() -> new IllegalStateException("Producto no encontrado"));
     }
 
     @Override
-    public Object partialUpdate(int id, PartialUpdateProductDto dto) {
-        Product product = products.stream().filter(p -> p.getId() == id).findFirst().orElse(null);
-        if (product == null)
-            return new Object() {
-                public String error = "Product not found";
-            };
+    public ProductResponseDto partialUpdate(int id, PartialUpdateProductDto dto) {
 
-        if (dto.name != null)
-            product.setName(dto.name);
-        if (dto.description != null)
-            product.setDescription(dto.description);
-        if (dto.price != null)
-            product.setPrice(dto.price);
+        return productRepo.findById((long) id)
+                // Entity → Domain
+                .map(Product::fromEntity)
 
-        return ProductMapper.toResponse(product);
+                // Aplicar solo los cambios presentes
+                .map(product -> product.partialUpdate(dto))
+
+                // Domain → Entity
+                .map(Product::toEntity)
+
+                // Persistencia
+                .map(productRepo::save)
+
+                // Entity → Domain
+                .map(Product::fromEntity)
+
+                // Domain → DTO
+                .map(ProductMapper::toResponse)
+
+                // Error si no existe
+                .orElseThrow(() -> new IllegalStateException("Producto no encontrado"));
     }
 
     @Override
-    public Object delete(int id) {
-        boolean removed = products.removeIf(p -> p.getId() == id);
-        if (!removed)
-            return new Object() {
-                public String error = "Product not found";
-            };
-
-        return new Object() {
-            public String message = "Deleted successfully";
-        };
+    public void delete(int id) {
+        // Verifica existencia y elimina
+        productRepo.findById((long) id)
+                .ifPresentOrElse(
+                        productRepo::delete,
+                        () -> {
+                            throw new IllegalStateException("Producto no encontrado");
+                        });
     }
+
+
 }
