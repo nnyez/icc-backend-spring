@@ -1,5 +1,8 @@
 package ec.edu.ups.icc.fundamentos01.fundamentos01.users.models;
 
+import java.time.LocalDateTime;
+
+import ec.edu.ups.icc.fundamentos01.fundamentos01.users.dtos.CreateUserDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.users.dtos.PartialUpdateUserDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.users.dtos.UpdateUserDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.users.dtos.UserResponseDto;
@@ -9,27 +12,42 @@ import jakarta.websocket.MessageHandler.Partial;
 public class User {
 
     private int id;
-
     private String name;
-
     private String email;
-
     private String password;
-
-    /// Constructores 
+    private LocalDateTime createdAt;
 
     public User(int id, String name, String email, String password) {
+        if (name == null || name.isBlank())
+            throw new IllegalArgumentException("Nombre inválido");
+
+        if (email == null || !email.contains("@"))
+            throw new IllegalArgumentException("Email inválido");
+
+        if (password == null || password.length() < 8)
+            throw new IllegalArgumentException("Password inválido");
+
         this.id = id;
         this.name = name;
         this.email = email;
         this.password = password;
+        this.createdAt = LocalDateTime.now();
     }
-    public User(String name, String email, String password) {
+    public User( String name, String email, String password) {
+        if (name == null || name.isBlank())
+            throw new IllegalArgumentException("Nombre inválido");
+
+        if (email == null || !email.contains("@"))
+            throw new IllegalArgumentException("Email inválido");
+
+        if (password == null || password.length() < 8)
+            throw new IllegalArgumentException("Password inválido");
+
         this.name = name;
         this.email = email;
         this.password = password;
+        this.createdAt = LocalDateTime.now();
     }
-
     // Getters y Setters
 
     public int getId() {
@@ -72,7 +90,9 @@ public class User {
      * @param dto DTO con datos del formulario
      * @return instancia de User para lógica de negocio
      */
-    // public static User fromDto(CreateUserDto dto) {
+    public static User fromDto(CreateUserDto dto) {
+        return new User(0, dto.name, dto.email, dto.password);
+    }
 
     /**
      * Crea un User desde una entidad persistente

@@ -6,14 +6,16 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
-import ec.edu.ups.icc.fundamentos01.fundamentos01.repositories.UserRepository;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.exception.domain.BadRequestException;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.exception.domain.ConflictException;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.exception.domain.NotFoundException;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.users.dtos.CreateUserDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.users.dtos.PartialUpdateUserDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.users.dtos.UpdateUserDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.users.dtos.UserResponseDto;
-import ec.edu.ups.icc.fundamentos01.fundamentos01.users.entities.UserEntity;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.users.mappers.UserMapper;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.users.models.User;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.users.repositories.UserRepository;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -49,11 +51,15 @@ public class UserServiceImpl implements UserService {
         return userRepo.findById((long) id)
                 .map(User::fromEntity)
                 .map(UserMapper::toResponse)
-                .orElseThrow(() -> new IllegalStateException("Usuario no encontrado"));
+                .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
     }
 
     @Override
     public UserResponseDto create(CreateUserDto dto) {
+        if (userRepo.findByEmail(dto.email).isPresent()) {
+            throw new ConflictException("El email ya está registrado");
+        }
+
         return Optional.of(dto)
                 .map(UserMapper::fromCreateDto)
                 .map(User::toEntity)
@@ -61,7 +67,7 @@ public class UserServiceImpl implements UserService {
                 .map(User::fromEntity)
                 .map(UserMapper::toResponse)
 
-                .orElseThrow(() -> new IllegalStateException("Error al crear el usuario"));
+                .orElseThrow(() -> new BadRequestException("Error al crear el usuario"));
     }
 
     @Override
@@ -87,7 +93,7 @@ public class UserServiceImpl implements UserService {
                 .map(UserMapper::toResponse)
 
                 // Error controlado si no existe
-                .orElseThrow(() -> new IllegalStateException("Usuario no encontrado"));
+                .orElseThrow(() -> new BadRequestException("Usuario no encontrado"));
     }
 
     @Override
@@ -113,7 +119,7 @@ public class UserServiceImpl implements UserService {
                 .map(UserMapper::toResponse)
 
                 // Error si no existe
-                .orElseThrow(() -> new IllegalStateException("Usuario no encontrado"));
+                .orElseThrow(() -> new BadRequestException("Usuario no encontrado"));
     }
 
     @Override
@@ -123,7 +129,7 @@ public class UserServiceImpl implements UserService {
                 .ifPresentOrElse(
                         userRepo::delete,
                         () -> {
-                            throw new IllegalStateException("Usuario no encontrado");
+                            throw new BadRequestException("Usuario no encontrado");
                         });
     }
 

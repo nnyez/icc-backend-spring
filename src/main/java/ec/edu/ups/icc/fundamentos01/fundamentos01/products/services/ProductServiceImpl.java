@@ -4,14 +4,17 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import ec.edu.ups.icc.fundamentos01.fundamentos01.exception.domain.BadRequestException;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.exception.domain.ConflictException;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.exception.domain.NotFoundException;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.CreateProductDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.PartialUpdateProductDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.UpdateProductDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.ProductResponseDto;
-import ec.edu.ups.icc.fundamentos01.fundamentos01.products.entities.ProductEntity;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.mappers.ProductMapper;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.models.Product;
-import ec.edu.ups.icc.fundamentos01.fundamentos01.repositories.ProductRepository;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.products.repositories.ProductRepository;
+
 import java.util.List;
 
 @Service
@@ -47,71 +50,84 @@ public class ProductServiceImpl implements ProductService {
         return productRepo.findById((long) id)
                 .map(Product::fromEntity)
                 .map(ProductMapper::toResponse)
-                .orElseThrow(() -> new IllegalStateException("Producto no encontrado"));
+                .orElseThrow(() -> new NotFoundException("Producto no encontrado"));
     }
 
     @Override
     public ProductResponseDto create(CreateProductDto dto) {
-        return Optional.of(dto)
-                .map(ProductMapper::fromCreateDto)
-                .map(Product::toEntity)
-                .map(productRepo::save)
-                .map(Product::fromEntity)
-                .map(ProductMapper::toResponse)
+        try {
+            if (productRepo.findByName(dto.name).isPresent()) {
+                throw new ConflictException("El nombre ya está registrado");
+            }
+            return Optional.of(dto)
+                    .map(ProductMapper::fromCreateDto)
+                    .map(Product::toEntity)
+                    .map(productRepo::save)
+                    .map(Product::fromEntity)
+                    .map(ProductMapper::toResponse)
 
-                .orElseThrow(() -> new IllegalStateException("Error al crear el producto"));
+                    .orElseThrow(() -> new BadRequestException("Error al crear el producto"));
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Datos inválidos: " + e.getMessage());
+        }
     }
 
     @Override
     public ProductResponseDto update(int id, UpdateProductDto dto) {
+        try {
+            return productRepo.findById((long) id)
+                    // Entity → Domain
+                    .map(Product::fromEntity)
 
-        return productRepo.findById((long) id)
-                // Entity → Domain
-                .map(Product::fromEntity)
+                    // Aplicar cambios permitidos en el dominio
+                    .map(product -> product.update(dto))
 
-                // Aplicar cambios permitidos en el dominio
-                .map(product -> product.update(dto))
+                    // Domain → Entity
+                    .map(Product::toEntity)
 
-                // Domain → Entity
-                .map(Product::toEntity)
+                    // Persistencia
+                    .map(productRepo::save)
 
-                // Persistencia
-                .map(productRepo::save)
+                    // Entity → Domain
+                    .map(Product::fromEntity)
 
-                // Entity → Domain
-                .map(Product::fromEntity)
+                    // Domain → DTO
+                    .map(ProductMapper::toResponse)
 
-                // Domain → DTO
-                .map(ProductMapper::toResponse)
-
-                // Error controlado si no existe
-                .orElseThrow(() -> new IllegalStateException("Producto no encontrado"));
+                    // Error controlado si no existe
+                    .orElseThrow(() -> new BadRequestException("Producto no encontrado"));
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Datos inválidos: " + e.getMessage());
+        }
     }
 
     @Override
     public ProductResponseDto partialUpdate(int id, PartialUpdateProductDto dto) {
+        try {
+            return productRepo.findById((long) id)
+                    // Entity → Domain
+                    .map(Product::fromEntity)
 
-        return productRepo.findById((long) id)
-                // Entity → Domain
-                .map(Product::fromEntity)
+                    // Aplicar solo los cambios presentes
+                    .map(product -> product.partialUpdate(dto))
 
-                // Aplicar solo los cambios presentes
-                .map(product -> product.partialUpdate(dto))
+                    // Domain → Entity
+                    .map(Product::toEntity)
 
-                // Domain → Entity
-                .map(Product::toEntity)
+                    // Persistencia
+                    .map(productRepo::save)
 
-                // Persistencia
-                .map(productRepo::save)
+                    // Entity → Domain
+                    .map(Product::fromEntity)
 
-                // Entity → Domain
-                .map(Product::fromEntity)
+                    // Domain → DTO
+                    .map(ProductMapper::toResponse)
 
-                // Domain → DTO
-                .map(ProductMapper::toResponse)
-
-                // Error si no existe
-                .orElseThrow(() -> new IllegalStateException("Producto no encontrado"));
+                    // Error si no existe
+                    .orElseThrow(() -> new BadRequestException("Producto no encontrado"));
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Datos inválidos: " + e.getMessage());
+        }
     }
 
     @Override
@@ -121,7 +137,7 @@ public class ProductServiceImpl implements ProductService {
                 .ifPresentOrElse(
                         productRepo::delete,
                         () -> {
-                            throw new IllegalStateException("Producto no encontrado");
+                            throw new BadRequestException("Producto no encontrado");
                         });
     }
 

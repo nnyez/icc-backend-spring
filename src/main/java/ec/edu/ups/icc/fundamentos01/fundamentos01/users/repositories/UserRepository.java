@@ -1,4 +1,4 @@
-package ec.edu.ups.icc.fundamentos01.fundamentos01.repositories;
+package ec.edu.ups.icc.fundamentos01.fundamentos01.users.repositories;
 
 import java.util.Optional;
 

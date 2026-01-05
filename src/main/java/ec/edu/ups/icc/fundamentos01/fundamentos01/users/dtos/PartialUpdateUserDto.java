@@ -1,8 +1,18 @@
 package ec.edu.ups.icc.fundamentos01.fundamentos01.users.dtos;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
+
 public class PartialUpdateUserDto {
-    public String name=null;
-    public String email=null;
-    public String password=null;
+    
+    @Size(min = 3, max = 150)
+    public String name;
+
+    @Email
+    @Size(max = 150)
+    public String email;
+
+    @Size(min = 8)
+    public String password;
 
 }

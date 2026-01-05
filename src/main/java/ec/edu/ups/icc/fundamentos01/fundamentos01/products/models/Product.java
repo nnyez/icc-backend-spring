@@ -20,6 +20,18 @@ public class Product {
     /// Constructores 
 
     public Product(int id, String name, String description, double price, int stock) {
+        if (name == null || name.isBlank())
+            throw new IllegalArgumentException("Nombre inválido");
+
+        if (description == null || description.isBlank())
+            throw new IllegalArgumentException("Descripción inválida");
+
+        if (price <= 0)
+            throw new IllegalArgumentException("Precio inválido");
+
+        if (stock < 0)
+            throw new IllegalArgumentException("Stock inválido");
+
         this.id = id;
         this.name = name;
         this.description = description;
@@ -28,6 +40,18 @@ public class Product {
     }
 
     public Product(String name, String description, double price, int stock) {
+        if (name == null || name.isBlank())
+            throw new IllegalArgumentException("Nombre inválido");
+
+        if (description == null || description.isBlank())
+            throw new IllegalArgumentException("Descripción inválida");
+
+        if (price <= 0)
+            throw new IllegalArgumentException("Precio inválido");
+
+        if (stock < 0)
+            throw new IllegalArgumentException("Stock inválido");
+
         this.name = name;
         this.description = description;
         this.price = price;
@@ -129,6 +153,18 @@ public class Product {
      * @return este mismo Product con valores actualizados
      */
     public Product update(UpdateProductDto dto) {
+        if (dto.name == null || dto.name.isBlank())
+            throw new IllegalArgumentException("Nombre inválido");
+
+        if (dto.description == null || dto.description.isBlank())
+            throw new IllegalArgumentException("Descripción inválida");
+
+        if (dto.price <= 0)
+            throw new IllegalArgumentException("Precio inválido");
+
+        if (dto.stock < 0)
+            throw new IllegalArgumentException("Stock inválido");
+
         this.name = dto.name;
         this.description = dto.description;
         this.price = dto.price;
@@ -144,15 +180,23 @@ public class Product {
      */
     public Product partialUpdate(PartialUpdateProductDto dto) {
         if (dto.name != null) {
+            if (dto.name.isBlank())
+                throw new IllegalArgumentException("Nombre inválido");
             this.name = dto.name;
         }
         if (dto.description != null) {
+            if (dto.description.isBlank())
+                throw new IllegalArgumentException("Descripción inválida");
             this.description = dto.description;
         }
         if (dto.price != null) {
+            if (dto.price <= 0)
+                throw new IllegalArgumentException("Precio inválido");
             this.price = dto.price;
         }
         if (dto.stock != null) {
+            if (dto.stock < 0)
+                throw new IllegalArgumentException("Stock inválido");
             this.stock = dto.stock;
         }
         return this;

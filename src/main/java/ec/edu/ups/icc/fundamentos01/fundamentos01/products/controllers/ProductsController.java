@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
+
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.CreateProductDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.PartialUpdateProductDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.UpdateProductDto;
@@ -38,17 +40,17 @@ public class ProductsController {
     }
 
     @PostMapping
-    public ProductResponseDto create(@RequestBody CreateProductDto dto) {
+    public ProductResponseDto create(@Valid @RequestBody CreateProductDto dto) {
         return service.create(dto);
     }
 
     @PutMapping("/{id}")
-    public Object update(@PathVariable int id, @RequestBody UpdateProductDto dto) {
+    public Object update(@PathVariable int id, @Valid @RequestBody UpdateProductDto dto) {
         return service.update(id, dto);
     }
 
     @PatchMapping("/{id}")
-    public Object partialUpdate(@PathVariable int id, @RequestBody PartialUpdateProductDto dto) {
+    public Object partialUpdate(@PathVariable int id, @Valid @RequestBody PartialUpdateProductDto dto) {
         return service.partialUpdate(id, dto);
     }
 
