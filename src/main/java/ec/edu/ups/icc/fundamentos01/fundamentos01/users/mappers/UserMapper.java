@@ -19,4 +19,4 @@ public class UserMapper {
     public static User fromCreateDto(CreateUserDto dto) {
         return new User( dto.name, dto.email, dto.password);
     }
-}
+}   

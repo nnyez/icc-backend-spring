@@ -20,4 +20,10 @@ public interface ProductService {
     ProductResponseDto partialUpdate(int id, PartialUpdateProductDto dto);
 
     void delete(int id);
+
+    void validateName(int id, String name);
+
+    // ProductResponseDto secureUpdate(int id, String name,
+    //        double price, String reason);
+
 }

@@ -4,16 +4,22 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import ec.edu.ups.icc.fundamentos01.fundamentos01.categorias.dtos.CategoriaResponseDto;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.categorias.entities.CategoryEntity;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.categorias.repositories.CategoryRepository;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.exception.domain.BadRequestException;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.exception.domain.ConflictException;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.exception.domain.NotFoundException;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.CreateProductDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.PartialUpdateProductDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.UpdateProductDto;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.products.entities.ProductEntity;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.ProductResponseDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.mappers.ProductMapper;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.models.Product;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.repositories.ProductRepository;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.users.entities.UserEntity;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.users.repositories.UserRepository;
 
 import java.util.List;
 
@@ -21,9 +27,16 @@ import java.util.List;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepo;
+    private final UserRepository userRepo;
+    private final CategoryRepository categoryRepo;
 
-    public ProductServiceImpl(ProductRepository productRepo) {
+    public ProductServiceImpl(
+            ProductRepository productRepo,
+            UserRepository userRepo,
+            CategoryRepository categoryRepo) {
         this.productRepo = productRepo;
+        this.userRepo = userRepo;
+        this.categoryRepo = categoryRepo;
     }
 
     @Override
@@ -55,23 +68,60 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductResponseDto create(CreateProductDto dto) {
-        try {
-            if (productRepo.findByName(dto.name).isPresent()) {
-                throw new ConflictException("El nombre ya está registrado");
-            }
-            return Optional.of(dto)
-                    .map(ProductMapper::fromCreateDto)
-                    .map(Product::toEntity)
-                    .map(productRepo::save)
-                    .map(Product::fromEntity)
-                    .map(ProductMapper::toResponse)
+        // 1. VALIDAR EXISTENCIA DE RELACIONES
+        UserEntity owner = userRepo.findById(dto.userId)
+                .orElseThrow(() -> new NotFoundException("Usuario no encontrado con ID: " + dto.userId));
 
-                    .orElseThrow(() -> new BadRequestException("Error al crear el producto"));
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("Datos inválidos: " + e.getMessage());
+        CategoryEntity category = categoryRepo.findById(dto.categoryId)
+                .orElseThrow(() -> new NotFoundException("Categoría no encontrada con ID: " + dto.categoryId));
+
+        // Regla: nombre único
+        if (productRepo.findByName(dto.name).isPresent()) {
+            throw new IllegalStateException("El nombre del producto ya está registrado");
         }
+
+        // 2. CREAR MODELO DE DOMINIO
+        Product product = ProductMapper.fromCreateDto(dto);
+
+        // 3. CONVERTIR A ENTIDAD CON RELACIONES
+        ProductEntity entity = product.toEntity(owner, category);
+
+        // 4. PERSISTIR
+        ProductEntity saved = productRepo.save(entity);
+
+        // 5. CONVERTIR A DTO DE RESPUESTA
+        return toResponseDto(saved);
     }
 
+private ProductResponseDto toResponseDto(ProductEntity entity) {
+        ProductResponseDto dto = new ProductResponseDto();
+        
+        // Campos básicos del producto
+        dto.id = entity.getId();
+        dto.name = entity.getName();
+        dto.price = entity.getPrice();
+        dto.description = entity.getDescription();
+        
+        // Crear objeto User anidado (se carga LAZY)
+        ProductResponseDto.UserSummaryDto userDto = new ProductResponseDto.UserSummaryDto();
+        userDto.id = entity.getOwner().getId();
+        userDto.name = entity.getOwner().getName();
+        userDto.email = entity.getOwner().getEmail();
+        dto.user = userDto;
+        
+        // Crear objeto Category anidado (se carga LAZY)
+        CategoriaResponseDto categoryDto = new CategoriaResponseDto();
+        categoryDto.id = entity.getCategory().getId();
+        categoryDto.name = entity.getCategory().getName();
+        categoryDto.description = entity.getCategory().getDescription();
+        dto.category = categoryDto;
+        
+        // Auditoría
+        dto.createdAt = entity.getCreatedAt();
+        dto.updatedAt = entity.getUpdatedAt();
+        
+        return dto;
+    }
     @Override
     public ProductResponseDto update(int id, UpdateProductDto dto) {
         try {
@@ -141,5 +191,22 @@ public class ProductServiceImpl implements ProductService {
                         });
     }
 
+    @Override
+    public void validateName(int id, String name) {
+        productRepo.findByName(name)
+                .ifPresent(existingProduct -> {
+                    if (existingProduct.getId() != (long) id) {
+                        throw new ConflictException("El nombre ya está registrado");
+                    }
+                });
+
+    }
+
+    // @Override
+    // public ProductResponseDto secureUpdate(int id, String name, double price,
+    // String reason) {
+    // // if(productRepo.findById((long) id).isPresent())
+
+    // }
 
 }

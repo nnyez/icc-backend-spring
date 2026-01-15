@@ -1,9 +1,12 @@
 package ec.edu.ups.icc.fundamentos01.fundamentos01.products.models;
 
+import ec.edu.ups.icc.fundamentos01.fundamentos01.categorias.entities.CategoryEntity;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.CreateProductDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.PartialUpdateProductDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.UpdateProductDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.ProductResponseDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.entities.ProductEntity;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.users.entities.UserEntity;
 
 public class Product {
 
@@ -153,6 +156,16 @@ public class Product {
      * @return este mismo Product con valores actualizados
      */
     public Product update(UpdateProductDto dto) {
+        validateBusinessRules(dto);
+
+        this.name = dto.name;
+        this.description = dto.description;
+        this.price = dto.price;
+        this.stock = dto.stock;
+        return this;
+    }
+
+    private void validateBusinessRules(UpdateProductDto dto) {
         if (dto.name == null || dto.name.isBlank())
             throw new IllegalArgumentException("Nombre inválido");
 
@@ -164,12 +177,6 @@ public class Product {
 
         if (dto.stock < 0)
             throw new IllegalArgumentException("Stock inválido");
-
-        this.name = dto.name;
-        this.description = dto.description;
-        this.price = dto.price;
-        this.stock = dto.stock;
-        return this;
     }
 
     /**
@@ -200,6 +207,28 @@ public class Product {
             this.stock = dto.stock;
         }
         return this;
+    }
+
+
+    // public static Product fromDto(CreateProductDto dto) {
+    // }
+
+    public ProductEntity toEntity(UserEntity owner, CategoryEntity category) {
+        ProductEntity entity = new ProductEntity();
+
+        if (this.id > 0) {
+            entity.setId((long) this.id);
+        }
+
+        entity.setName(this.name);
+        entity.setPrice(this.price);
+        entity.setDescription(this.description);
+
+        // Asignar relaciones
+        entity.setOwner(owner);
+        entity.setCategory(category);
+
+        return entity;
     }
 
 }

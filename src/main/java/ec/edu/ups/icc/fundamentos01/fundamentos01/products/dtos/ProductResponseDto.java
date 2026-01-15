@@ -1,21 +1,40 @@
 package ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos;
 
+import java.time.LocalDateTime;
+
+import ec.edu.ups.icc.fundamentos01.fundamentos01.categorias.dtos.CategoriaResponseDto;
+
 public class ProductResponseDto {
-    public int id;
-    public String name;
-    public String description;
-    public double price;
-    public int stock;
+
+    public ProductResponseDto(int id2, String name2, String description2, double price2, int stock) {
+        //TODO Auto-generated constructor stub
+    }
 
     public ProductResponseDto() {
+        //TODO Auto-generated constructor stub
     }
 
-    public ProductResponseDto(int id, String name, String description, double price, int stock) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.price = price;
-        this.stock = stock;
+    public Long id;
+    public String name;
+    public Double price;
+    public String description;
+
+    // ============== OBJETOS ANIDADOS ==============
+    
+    public UserSummaryDto user;
+    public CategoriaResponseDto category;
+
+    // ============== AUDITORÍA ==============
+    
+    public LocalDateTime createdAt;
+    public LocalDateTime updatedAt;
+
+    // ============== DTOs INTERNOS ==============
+    
+    public static class UserSummaryDto {
+        public Long id;
+        public String name;
+        public String email;
     }
+
 }
-

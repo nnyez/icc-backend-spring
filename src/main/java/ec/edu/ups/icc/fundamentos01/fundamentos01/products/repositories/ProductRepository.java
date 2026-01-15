@@ -1,5 +1,6 @@
 package ec.edu.ups.icc.fundamentos01.fundamentos01.products.repositories;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,6 +10,15 @@ import ec.edu.ups.icc.fundamentos01.fundamentos01.products.entities.ProductEntit
 
 @Repository
 public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
-    Optional<ProductEntity> findByName(String name  );
+    Optional<ProductEntity> findByName(String name);
 
+    List<ProductEntity> findByOwnerId(Long userId);
+
+    List<ProductEntity> findByOwnerName(String name);
+
+    List<ProductEntity> findByCategoryId(Long categoryId);
+
+    List<ProductEntity> findByCategoryName(String name);
+
+    List<ProductEntity> findByCategoryIdAndPriceGreaterThan(Long categoryId, Double price);
 }
