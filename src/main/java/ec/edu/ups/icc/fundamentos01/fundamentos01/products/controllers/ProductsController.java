@@ -17,11 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.CreateProductDto;
-import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.PartialUpdateProductDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.UpdateProductDto;
-import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.ValidateProductDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.ProductResponseDto;
-import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.SecureUpdateDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.services.ProductService;
 
 @RestController
@@ -33,7 +30,7 @@ public class ProductsController {
         this.productService = productService;
     }
 
-    @PostMapping
+@PostMapping
     public ResponseEntity<ProductResponseDto> create(@Valid @RequestBody CreateProductDto dto) {
         ProductResponseDto created = productService.create(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);

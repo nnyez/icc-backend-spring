@@ -1,5 +1,6 @@
 package ec.edu.ups.icc.fundamentos01.fundamentos01.products.entities;
 
+import java.util.Set;
 import java.util.Locale.Category;
 
 import ec.edu.ups.icc.fundamentos01.fundamentos01.categorias.entities.CategoryEntity;
@@ -9,6 +10,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
@@ -32,9 +35,13 @@ public class ProductEntity extends BaseModel {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity owner;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = false)
-    private CategoryEntity category;
+    // @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    // @JoinColumn(name = "category_id", nullable = false)
+    // private CategoryEntity category;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "product_categories", joinColumns = @JoinColumn(name = "product_id"), inverseJoinColumns = @JoinColumn(name = "category_id"))
+    private Set<CategoryEntity> categories;
 
     public String getName() {
         return name;
@@ -76,13 +83,16 @@ public class ProductEntity extends BaseModel {
         this.owner = owner;
     }
 
-    public CategoryEntity getCategory() {
-        return category;
+    public void removeCategory(CategoryEntity entity) {
+        this.categories.remove(entity);
     }
 
-    public void setCategory(CategoryEntity category) {
-        this.category = category;
+    public void addCategory(CategoryEntity entity) {
+        this.categories.add(entity);
+    }
+
+    public void clearCategory(CategoryEntity entity) {
+        this.categories.clear();
     }
 
 }
-
