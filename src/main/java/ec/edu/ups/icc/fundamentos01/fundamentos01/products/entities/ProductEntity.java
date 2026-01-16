@@ -85,3 +85,4 @@ public class ProductEntity extends BaseModel {
     }
 
 }
+

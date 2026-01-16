@@ -2,6 +2,7 @@ package ec.edu.ups.icc.fundamentos01.fundamentos01.products.controllers;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,57 +27,71 @@ import ec.edu.ups.icc.fundamentos01.fundamentos01.products.services.ProductServi
 @RestController
 @RequestMapping("/api/products")
 public class ProductsController {
-    private final ProductService service;
+    private final ProductService productService;
 
-    public ProductsController(ProductService service) {
-        this.service = service;
-    }
-
-    @GetMapping
-    public List<ProductResponseDto> findAll() {
-        return service.findAll();
-    }
-    
-    @GetMapping("/{id}")
-    public Object findOne(@PathVariable int id) {
-        return service.findOne(id);
+    public ProductsController(ProductService productService) {
+        this.productService = productService;
     }
 
     @PostMapping
-    public ProductResponseDto create(@Valid @RequestBody CreateProductDto dto) {
-        return service.create(dto);
+    public ResponseEntity<ProductResponseDto> create(@Valid @RequestBody CreateProductDto dto) {
+        ProductResponseDto created = productService.create(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ProductResponseDto>> findAll() {
+        List<ProductResponseDto> products = productService.findAll();
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ProductResponseDto> findById(@PathVariable Long id) {
+        ProductResponseDto product = productService.findOne(id);
+        return ResponseEntity.ok(product);
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<ProductResponseDto>> findByUserId(@PathVariable Long userId) {
+        List<ProductResponseDto> products = productService.findByUserId(userId);
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<List<ProductResponseDto>> findByCategoryId(@PathVariable Long categoryId) {
+        List<ProductResponseDto> products = productService.findByCategoryId(categoryId);
+        return ResponseEntity.ok(products);
     }
 
     @PutMapping("/{id}")
-    public Object update(@PathVariable int id, @Valid @RequestBody UpdateProductDto dto) {
-        return service.update(id, dto);
-    }
-
-    @PatchMapping("/{id}")
-    public Object partialUpdate(@PathVariable int id, @Valid @RequestBody PartialUpdateProductDto dto) {
-        return service.partialUpdate(id, dto);
+    public ResponseEntity<ProductResponseDto> update(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateProductDto dto
+    ) {
+        ProductResponseDto updated = productService.update(id, dto);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable int id) {
-        service.delete(id);
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        productService.delete(id);
+        return ResponseEntity.noContent().build();
     }
+    // @PostMapping("/validate-name")
+    // public Object validateName( @RequestBody ValidateProductDto dto) {
 
-    @PostMapping("/validate-name")
-    public Object validateName( @RequestBody ValidateProductDto dto) {
-
-        service.validateName(dto.id, dto.name);
+    //     service.validateName(dto.id, dto.name);
         
-        return ResponseEntity.ok().build();
-    }
+    //     return ResponseEntity.ok().build();
+    // }
 
-    @PostMapping("/secure-update")
-    public Object secureUpdate(@PathVariable int id, @RequestBody SecureUpdateDto dto) {
+    // @PostMapping("/secure-update")
+    // public Object secureUpdate(@PathVariable int id, @RequestBody SecureUpdateDto dto) {
 
-        // service.secureUpdate(id, dto.name, dto.price, dto.reason);
+    //     // service.secureUpdate(id, dto.name, dto.price, dto.reason);
         
-        return ResponseEntity.ok().build();
-    }
+    //     return ResponseEntity.ok().build();
+    // }
 
 
 

@@ -11,17 +11,21 @@ public interface ProductService {
 
     List<ProductResponseDto> findAll();
 
-    ProductResponseDto findOne(int id);
+    ProductResponseDto findOne(Long id);
 
     ProductResponseDto create(CreateProductDto dto);
 
-    ProductResponseDto update(int id, UpdateProductDto dto);
+    ProductResponseDto update(Long id, UpdateProductDto dto);
 
-    ProductResponseDto partialUpdate(int id, PartialUpdateProductDto dto);
+    ProductResponseDto partialUpdate(Long id, PartialUpdateProductDto dto);
 
-    void delete(int id);
+    void delete(Long id);
 
-    void validateName(int id, String name);
+    void validateName(Long id, String name);
+
+    List<ProductResponseDto> findByCategoryId(Long categoryId);
+
+    List<ProductResponseDto> findByUserId(Long userId);
 
     // ProductResponseDto secureUpdate(int id, String name,
     //        double price, String reason);
