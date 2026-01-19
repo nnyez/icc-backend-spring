@@ -1,6 +1,7 @@
 package ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import ec.edu.ups.icc.fundamentos01.fundamentos01.categorias.dtos.CategoriaResponseDto;
 
@@ -22,7 +23,7 @@ public class ProductResponseDto {
     // ============== OBJETOS ANIDADOS ==============
     
     public UserSummaryDto user;
-    public CategoriaResponseDto category;
+    public List<CategoriaResponseDto> categories;
 
     // ============== AUDITORÍA ==============
     

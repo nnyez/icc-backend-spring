@@ -1,5 +1,6 @@
 package ec.edu.ups.icc.fundamentos01.fundamentos01.products.entities;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.Locale.Category;
 
@@ -41,7 +42,15 @@ public class ProductEntity extends BaseModel {
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "product_categories", joinColumns = @JoinColumn(name = "product_id"), inverseJoinColumns = @JoinColumn(name = "category_id"))
-    private Set<CategoryEntity> categories;
+    private Set<CategoryEntity> categories = new HashSet<>();
+
+    public Set<CategoryEntity> getCategories() {
+        return categories;
+    }
+
+    public void setCategories(Set<CategoryEntity> categories) {
+        this.categories = categories;
+    }
 
     public String getName() {
         return name;

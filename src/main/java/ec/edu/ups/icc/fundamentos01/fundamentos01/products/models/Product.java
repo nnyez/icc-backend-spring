@@ -1,5 +1,7 @@
 package ec.edu.ups.icc.fundamentos01.fundamentos01.products.models;
 
+import java.util.List;
+
 import ec.edu.ups.icc.fundamentos01.fundamentos01.categorias.entities.CategoryEntity;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.CreateProductDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.PartialUpdateProductDto;
@@ -209,11 +211,10 @@ public class Product {
         return this;
     }
 
-
     // public static Product fromDto(CreateProductDto dto) {
     // }
 
-    public ProductEntity toEntity(UserEntity owner, CategoryEntity category) {
+    public ProductEntity toEntity(UserEntity owner, List<CategoryEntity> category) {
         ProductEntity entity = new ProductEntity();
 
         if (this.id > 0) {
@@ -223,10 +224,10 @@ public class Product {
         entity.setName(this.name);
         entity.setPrice(this.price);
         entity.setDescription(this.description);
-
-        // Asignar relaciones
         entity.setOwner(owner);
-        entity.setCategory(category);
+
+        category.forEach(c -> 
+            entity.addCategory(c));
 
         return entity;
     }

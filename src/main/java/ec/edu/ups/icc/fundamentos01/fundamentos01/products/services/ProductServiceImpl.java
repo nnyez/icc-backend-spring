@@ -21,6 +21,7 @@ import ec.edu.ups.icc.fundamentos01.fundamentos01.products.repositories.ProductR
 import ec.edu.ups.icc.fundamentos01.fundamentos01.users.entities.UserEntity;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.users.repositories.UserRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -77,7 +78,7 @@ public class ProductServiceImpl implements ProductService {
             throw new NotFoundException("Categoría no encontrada con ID: " + categoryId);
         }
 
-        return productRepo.findByCategoryId(categoryId)
+        return productRepo.findByCategoriesId(categoryId)
                 .stream()
                 .map(this::toResponseDto)
                 .toList();
@@ -89,8 +90,7 @@ public class ProductServiceImpl implements ProductService {
         UserEntity owner = userRepo.findById(dto.userId)
                 .orElseThrow(() -> new NotFoundException("Usuario no encontrado con ID: " + dto.userId));
 
-        CategoryEntity category = categoryRepo.findById(dto.categoryId)
-                .orElseThrow(() -> new NotFoundException("Categoría no encontrada con ID: " + dto.categoryId));
+        List<CategoryEntity> categories = validateCategories(dto.categoryIds);
 
         // Regla: nombre único
         if (productRepo.findByName(dto.name).isPresent()) {
@@ -101,13 +101,24 @@ public class ProductServiceImpl implements ProductService {
         Product product = ProductMapper.fromCreateDto(dto);
 
         // 3. CONVERTIR A ENTIDAD CON RELACIONES
-        ProductEntity entity = product.toEntity(owner, category);
+        ProductEntity entity = product.toEntity(owner, categories);
 
         // 4. PERSISTIR
         ProductEntity saved = productRepo.save(entity);
 
         // 5. CONVERTIR A DTO DE RESPUESTA
         return toResponseDto(saved);
+    }
+
+    private List<CategoryEntity> validateCategories(List<Long> categoryIds) {
+        List<CategoryEntity> categories = new ArrayList<>();
+        categoryIds.forEach(c -> {
+            CategoryEntity e = categoryRepo.findById(c).orElseThrow(
+                    () -> new NotFoundException("Usuario no encontrado con ID: " + c));
+            categories.add(e);
+        });
+
+        return categories;
     }
 
     private ProductResponseDto toResponseDto(ProductEntity entity) {
@@ -127,11 +138,11 @@ public class ProductServiceImpl implements ProductService {
         dto.user = userDto;
 
         // Crear objeto Category anidado (se carga LAZY)
-        CategoriaResponseDto categoryDto = new CategoriaResponseDto();
-        categoryDto.id = entity.getCategory().getId();
-        categoryDto.name = entity.getCategory().getName();
-        categoryDto.description = entity.getCategory().getDescription();
-        dto.category = categoryDto;
+        List<CategoriaResponseDto> categoryDto = new ArrayList<>();
+        entity.getCategories().forEach(c -> {
+            CategoriaResponseDto response = new CategoriaResponseDto(c.getId(), c.getName(), c.getDescription());
+            categoryDto.add(response);
+        });
 
         // Auditoría
         dto.createdAt = entity.getCreatedAt();
@@ -147,15 +158,14 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new NotFoundException("Producto no encontrado con ID: " + id));
 
         // 2. VALIDAR NUEVA CATEGORÍA (si cambió)
-        CategoryEntity newCategory = categoryRepo.findById(dto.categoryId)
-                .orElseThrow(() -> new NotFoundException("Categoría no encontrada con ID: " + dto.categoryId));
+        List<CategoryEntity> categories = validateCategories(dto.categoryIds);
 
         // 3. ACTUALIZAR USANDO DOMINIO
         Product product = Product.fromEntity(existing);
         product.update(dto);
 
         // 4. CONVERTIR A ENTIDAD MANTENIENDO OWNER ORIGINAL
-        ProductEntity updated = product.toEntity(existing.getOwner(), newCategory);
+        ProductEntity updated = product.toEntity(existing.getOwner(), categories);
         updated.setId((Long) id); // Asegurar que mantiene el ID
 
         // 5. PERSISTIR Y RESPONDER
