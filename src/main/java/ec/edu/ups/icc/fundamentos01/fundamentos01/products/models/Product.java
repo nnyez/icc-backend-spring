@@ -2,6 +2,7 @@ package ec.edu.ups.icc.fundamentos01.fundamentos01.products.models;
 
 import java.util.List;
 
+import ec.edu.ups.icc.fundamentos01.fundamentos01.categorias.dtos.CategoriaResponseDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.categorias.entities.CategoryEntity;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.CreateProductDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.PartialUpdateProductDto;
@@ -12,7 +13,7 @@ import ec.edu.ups.icc.fundamentos01.fundamentos01.users.entities.UserEntity;
 
 public class Product {
 
-    private int id;
+    private Long id;
 
     private String name;
 
@@ -23,26 +24,6 @@ public class Product {
     private int stock;
 
     /// Constructores 
-
-    public Product(int id, String name, String description, double price, int stock) {
-        if (name == null || name.isBlank())
-            throw new IllegalArgumentException("Nombre inválido");
-
-        if (description == null || description.isBlank())
-            throw new IllegalArgumentException("Descripción inválida");
-
-        if (price <= 0)
-            throw new IllegalArgumentException("Precio inválido");
-
-        if (stock < 0)
-            throw new IllegalArgumentException("Stock inválido");
-
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.price = price;
-        this.stock = stock;
-    }
 
     public Product(String name, String description, double price, int stock) {
         if (name == null || name.isBlank())
@@ -63,13 +44,33 @@ public class Product {
         this.stock = stock;
     }
 
+    public Product(Long id, String name, String description, double price, int stock) {
+        if (name == null || name.isBlank())
+            throw new IllegalArgumentException("Nombre inválido");
+
+        if (description == null || description.isBlank())
+            throw new IllegalArgumentException("Descripción inválida");
+
+        if (price <= 0)
+            throw new IllegalArgumentException("Precio inválido");
+
+        if (stock < 0)
+            throw new IllegalArgumentException("Stock inválido");
+
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.stock = stock;
+    }
+
     // Getters y Setters
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -116,10 +117,11 @@ public class Product {
      */
     public static Product fromEntity(ProductEntity entity) {
         return new Product(
-                entity.getId().intValue(),
+                entity.getId(),
                 entity.getName(),
                 entity.getDescription(),
-                entity.getPrice(), entity.getStock());
+                entity.getPrice(),
+                entity.getStock());
     }
 
     // ==================== CONVERSION METHODS ====================
@@ -147,7 +149,7 @@ public class Product {
      * @return DTO sin información sensible
      */
     public ProductResponseDto toResponseDto() {
-        ProductResponseDto dto = new ProductResponseDto(id, name, description, price, stock);
+        ProductResponseDto dto = new ProductResponseDto((long) id, name, price, description, stock);
         return dto;
     }
 
@@ -217,17 +219,16 @@ public class Product {
     public ProductEntity toEntity(UserEntity owner, List<CategoryEntity> category) {
         ProductEntity entity = new ProductEntity();
 
-        if (this.id > 0) {
-            entity.setId((long) this.id);
-        }
+        // if (this.id > 0) {
+        //     entity.setId((long) this.id);
+        // }
 
         entity.setName(this.name);
         entity.setPrice(this.price);
         entity.setDescription(this.description);
         entity.setOwner(owner);
 
-        category.forEach(c -> 
-            entity.addCategory(c));
+        category.forEach(c -> entity.addCategory(c));
 
         return entity;
     }

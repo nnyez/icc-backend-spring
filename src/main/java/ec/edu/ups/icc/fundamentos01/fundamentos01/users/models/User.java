@@ -1,7 +1,13 @@
 package ec.edu.ups.icc.fundamentos01.fundamentos01.users.models;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
+import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.ProductResponseDto;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.ProductSummaryDto;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.products.entities.ProductEntity;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.products.mappers.ProductMapper;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.products.models.Product;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.users.dtos.CreateUserDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.users.dtos.PartialUpdateUserDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.users.dtos.UpdateUserDto;
@@ -15,6 +21,7 @@ public class User {
     private String name;
     private String email;
     private String password;
+    private List<ProductSummaryDto> products;
     private LocalDateTime createdAt;
 
     public User(int id, String name, String email, String password) {
@@ -33,7 +40,26 @@ public class User {
         this.password = password;
         this.createdAt = LocalDateTime.now();
     }
-    public User( String name, String email, String password) {
+
+    public User(int id, String name, String email, String password, List<ProductSummaryDto> products) {
+        if (name == null || name.isBlank())
+            throw new IllegalArgumentException("Nombre inválido");
+
+        if (email == null || !email.contains("@"))
+            throw new IllegalArgumentException("Email inválido");
+
+        if (password == null || password.length() < 8)
+            throw new IllegalArgumentException("Password inválido");
+
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.createdAt = LocalDateTime.now();
+        this.products = products;
+    }
+
+    public User(String name, String email, String password) {
         if (name == null || name.isBlank())
             throw new IllegalArgumentException("Nombre inválido");
 
@@ -108,6 +134,15 @@ public class User {
                 entity.getPassword());
     }
 
+    public static User fromEntity(UserEntity entity, List<ProductSummaryDto> products) {
+
+        return new User(
+                entity.getId().intValue(),
+                entity.getName(),
+                entity.getEmail(),
+                entity.getPassword(), products);
+    }
+
     // ==================== CONVERSION METHODS ====================
 
     /**
@@ -132,7 +167,8 @@ public class User {
      * @return DTO sin información sensible
      */
     public UserResponseDto toResponseDto() {
-        UserResponseDto dto = new UserResponseDto(id, name, email, password);
+      
+        UserResponseDto dto = new UserResponseDto(id, name, email, password, products);
 
         return dto;
     }

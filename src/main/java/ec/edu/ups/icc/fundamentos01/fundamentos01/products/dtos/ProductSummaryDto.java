@@ -5,7 +5,7 @@ import java.util.List;
 
 import ec.edu.ups.icc.fundamentos01.fundamentos01.categorias.dtos.CategoriaResponseDto;
 
-public class ProductResponseDto {
+public class ProductSummaryDto {
 
     public Long id;
     public String name;
@@ -17,7 +17,7 @@ public class ProductResponseDto {
 
  
 
-    public ProductResponseDto(Long id, String name, Double price, String description, Integer stock) {
+    public ProductSummaryDto(Long id, String name, Double price, String description, Integer stock) {
         this.id = id;
         this.name = name;
         this.price = price;
@@ -25,24 +25,13 @@ public class ProductResponseDto {
         this.stock = stock;
     }
 
-    public ProductResponseDto() {
+    public ProductSummaryDto() {
         //TODO Auto-generated constructor stub
     }
 
-    public UserSummaryDto user;
     public List<CategoriaResponseDto> categories;
 
-    // ============== AUDITORÍA ==============
 
-    public LocalDateTime createdAt;
-    public LocalDateTime updatedAt;
 
-    // ============== DTOs INTERNOS ==============
-
-    public static class UserSummaryDto {
-        public Long id;
-        public String name;
-        public String email;
-    }
 
 }

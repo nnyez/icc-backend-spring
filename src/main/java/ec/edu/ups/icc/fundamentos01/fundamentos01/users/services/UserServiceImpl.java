@@ -9,10 +9,17 @@ import org.springframework.stereotype.Service;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.exception.domain.BadRequestException;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.exception.domain.ConflictException;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.exception.domain.NotFoundException;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.ProductResponseDto;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.ProductSummaryDto;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.products.entities.ProductEntity;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.products.mappers.ProductMapper;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.products.models.Product;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.products.repositories.ProductRepository;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.users.dtos.CreateUserDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.users.dtos.PartialUpdateUserDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.users.dtos.UpdateUserDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.users.dtos.UserResponseDto;
+import ec.edu.ups.icc.fundamentos01.fundamentos01.users.entities.UserEntity;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.users.mappers.UserMapper;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.users.models.User;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.users.repositories.UserRepository;
@@ -20,10 +27,13 @@ import ec.edu.ups.icc.fundamentos01.fundamentos01.users.repositories.UserReposit
 @Service
 public class UserServiceImpl implements UserService {
 
+    private final ProductRepository productRepository;
+
     private final UserRepository userRepo;
 
-    public UserServiceImpl(UserRepository userRepo) {
+    public UserServiceImpl(UserRepository userRepo, ProductRepository productRepository) {
         this.userRepo = userRepo;
+        this.productRepository = productRepository;
     }
 
     // Actualizar código de los métodos para usar userRepo
@@ -47,8 +57,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDto findOne(int id) {
-        return userRepo.findById((long) id)
+    public UserResponseDto findOne(Long id) {
+        return userRepo.findById(id)
                 .map(User::fromEntity)
                 .map(UserMapper::toResponse)
                 .orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
@@ -71,9 +81,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDto update(int id, UpdateUserDto dto) {
+    public UserResponseDto update(Long id, UpdateUserDto dto) {
 
-        return userRepo.findById((long) id)
+        return userRepo.findById(id)
                 // Entity → Domain
                 .map(User::fromEntity)
 
@@ -97,9 +107,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDto partialUpdate(int id, PartialUpdateUserDto dto) {
+    public UserResponseDto partialUpdate(Long id, PartialUpdateUserDto dto) {
 
-        return userRepo.findById((long) id)
+        return userRepo.findById(id)
                 // Entity → Domain
                 .map(User::fromEntity)
 
@@ -123,14 +133,31 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void delete(int id) {
+    public void delete(Long id) {
         // Verifica existencia y elimina
-        userRepo.findById((long) id)
+        userRepo.findById(id)
                 .ifPresentOrElse(
                         userRepo::delete,
                         () -> {
                             throw new BadRequestException("Usuario no encontrado");
                         });
+    }
+
+    @Override
+    public List<ProductSummaryDto> findUserProducts(Long id) {
+        return productRepository.findByOwnerId(id)
+                .stream()
+                .map(ProductMapper::toResponseSummaryDto).toList();
+
+    }
+
+    @Override
+    public List<ProductSummaryDto> findUserProducts(Long id, String name, Double minPrice, Double maxPrice,
+            Long categoryId) {
+        return productRepository
+                .findByOwnerIdWithFilters(id, name, minPrice, maxPrice, categoryId)
+                .stream()
+                .map(ProductMapper::toResponseSummaryDto).toList();
     }
 
 }

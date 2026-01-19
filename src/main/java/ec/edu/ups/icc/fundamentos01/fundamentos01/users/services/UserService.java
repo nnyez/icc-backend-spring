@@ -2,6 +2,7 @@ package ec.edu.ups.icc.fundamentos01.fundamentos01.users.services;
 
 import java.util.List;
 
+import ec.edu.ups.icc.fundamentos01.fundamentos01.products.dtos.ProductSummaryDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.users.dtos.CreateUserDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.users.dtos.PartialUpdateUserDto;
 import ec.edu.ups.icc.fundamentos01.fundamentos01.users.dtos.UpdateUserDto;
@@ -11,13 +12,17 @@ public interface UserService {
 
     List<UserResponseDto> findAll();
 
-    UserResponseDto findOne(int id);
+    UserResponseDto findOne(Long id);
 
     UserResponseDto create(CreateUserDto dto);
 
-    Object update(int id, UpdateUserDto dto);
+    Object update(Long id, UpdateUserDto dto);
 
-    Object partialUpdate(int id, PartialUpdateUserDto dto);
+    Object partialUpdate(Long id, PartialUpdateUserDto dto);
 
-    void delete(int id);
+    void delete(Long id);
+
+    List<ProductSummaryDto> findUserProducts(Long id);
+
+    List<ProductSummaryDto> findUserProducts(Long id, String name, Double minPrice, Double maxPrice, Long categoryId);
 }

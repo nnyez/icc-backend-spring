@@ -52,7 +52,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponseDto findOne(Long id) {
         return productRepo.findById((Long) id)
-                .map(this::toResponseDto)
+                .map(ProductMapper::toResponseDto)
                 .orElseThrow(() -> new NotFoundException("Producto no encontrado con ID: " + id));
     }
 
@@ -66,7 +66,7 @@ public class ProductServiceImpl implements ProductService {
 
         return productRepo.findByOwnerId(userId)
                 .stream()
-                .map(this::toResponseDto)
+                .map(ProductMapper::toResponseDto)
                 .toList();
     }
 
@@ -80,7 +80,7 @@ public class ProductServiceImpl implements ProductService {
 
         return productRepo.findByCategoriesId(categoryId)
                 .stream()
-                .map(this::toResponseDto)
+                .map(ProductMapper::toResponseDto)
                 .toList();
     }
 
@@ -107,7 +107,7 @@ public class ProductServiceImpl implements ProductService {
         ProductEntity saved = productRepo.save(entity);
 
         // 5. CONVERTIR A DTO DE RESPUESTA
-        return toResponseDto(saved);
+        return ProductMapper.toResponseDto(saved);
     }
 
     private List<CategoryEntity> validateCategories(List<Long> categoryIds) {
@@ -119,36 +119,6 @@ public class ProductServiceImpl implements ProductService {
         });
 
         return categories;
-    }
-
-    private ProductResponseDto toResponseDto(ProductEntity entity) {
-        ProductResponseDto dto = new ProductResponseDto();
-
-        // Campos básicos del producto
-        dto.id = entity.getId();
-        dto.name = entity.getName();
-        dto.price = entity.getPrice();
-        dto.description = entity.getDescription();
-
-        // Crear objeto User anidado (se carga LAZY)
-        ProductResponseDto.UserSummaryDto userDto = new ProductResponseDto.UserSummaryDto();
-        userDto.id = entity.getOwner().getId();
-        userDto.name = entity.getOwner().getName();
-        userDto.email = entity.getOwner().getEmail();
-        dto.user = userDto;
-
-        // Crear objeto Category anidado (se carga LAZY)
-        List<CategoriaResponseDto> categoryDto = new ArrayList<>();
-        entity.getCategories().forEach(c -> {
-            CategoriaResponseDto response = new CategoriaResponseDto(c.getId(), c.getName(), c.getDescription());
-            categoryDto.add(response);
-        });
-
-        // Auditoría
-        dto.createdAt = entity.getCreatedAt();
-        dto.updatedAt = entity.getUpdatedAt();
-
-        return dto;
     }
 
     @Override
@@ -170,7 +140,7 @@ public class ProductServiceImpl implements ProductService {
 
         // 5. PERSISTIR Y RESPONDER
         ProductEntity saved = productRepo.save(updated);
-        return toResponseDto(saved);
+        return ProductMapper.toResponseDto(saved);
     }
 
     @Override
